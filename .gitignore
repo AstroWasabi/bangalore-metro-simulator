@@ -1,0 +1,19 @@
+# Python Virtual Environments
+.venv/
+ENV/
+env/
+
+# Python Cache & Binaries
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+
+# Local/Secret Environment Variables
+.env
