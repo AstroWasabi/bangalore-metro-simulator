@@ -1,5 +1,6 @@
 import json
 import os
+from backend.engine import calculate_distance
 
 def load_raw_geojson():
     """Reads the raw metro data file from the data folder"""
@@ -61,6 +62,33 @@ def extract_stations(geojson_data):
                 station_lookup[name] = clean_coords
     return station_lookup
 
+def map_stations_to_track_indices(track_coordinates, station_lookup):
+    """
+    Correlates station nodes to their nearest physical index position
+    along the fine-grained track LineString array using nearest-neighbor sweep
+    Returns a dictionary: { "Station Name": Integer_Index_Number }
+    """
+
+    mapped_indices = {}
+    #Loop every station name and its true coordinate location
+    for station_name, station_coords in station_lookup.items():
+        best_index = -1
+        minimum_distance = float('inf') #Start with infinity as baseline maximum
+
+        #Sweep across every single vector node on the rail track line
+        for index, track_coords in enumerate(track_coordinates):
+            dist = calculate_distance(station_coords, track_coords)
+
+            #if this track point is closer to the platform than the previous matches, lock it in
+            if dist< minimum_distance:
+                minimum_distance = dist
+                best_index = index
+
+        #Safety filter: Only map the station if it actually sits near this specific line track
+        # (e.g., Anjanapura Station wont match a Purple Line track because it's kms away)
+        if minimum_distance < 300: #300 meters maximum tolerance threshold
+            mapped_indices[station_name] = best_index
+    return mapped_indices
 
 if __name__ == "__main__":
     #Test our parser standalone
@@ -83,12 +111,25 @@ if __name__ == "__main__":
     stations = extract_stations(raw_data)
     print(f"2. Station Harvesting: {len(stations)} total stations parsed")
 
-    #Checking a few specific stations to verify the dictonary mapping keys
-    test_keys = ["Majestic", "Indiranagar", "Whitefield", "MG Road"]
-    print("3. Sample Station Coordinate Verification: ")
-    for key in test_keys:
-        if key in stations:
-            print(f"   - {key} -> {stations[key]}")
-        else:
-            print(f"   - {key} -> NOT FOUND")
+    #3. Test Index Mapping
+    purple_station_indices = map_stations_to_track_indices(purple_tracks, stations)
 
+    #printing sequence of stations exactly as they appear along the tracks
+    #we sort them by their index location value so they read West to East
+    sorted_sequence = sorted(purple_station_indices.items(), key=lambda item: item[1])
+
+
+    print("\n --- Verified Purple Line Station Sequence Over Track Vectors --- ")
+    for name, idx in sorted_sequence:
+        print(f"   Index #{idx:03d} -> {name}")
+
+
+    # #Checking a few specific stations to verify the dictonary mapping keys
+    # test_keys = ["Majestic", "Indiranagar", "Whitefield", "MG Road"]
+    # print("3. Sample Station Coordinate Verification: ")
+    # for key in test_keys:
+    #     if key in stations:
+    #         print(f"   - {key} -> {stations[key]}")
+    #     else:
+    #         print(f"   - {key} -> NOT FOUND")
+    #
