@@ -33,6 +33,35 @@ def extract_line_coordinates(geojson_data, line_name_keyword):
             return clean_coords
     return None
 
+def extract_stations(geojson_data):
+    """
+    Scans the entire feature list for Point geometries representing stations
+    and maps them into a clean lookup dictionary: {"Station Name" : [Log, Lat]}
+    """
+    station_lookup = {}
+
+    for feature in geojson_data["features"]:
+        properties = feature.get("properties", {})
+        geometry = feature.get("geometry", {})
+
+        name = properties.get("Name", "")
+        geom_type = geometry.get("type", "")
+
+        #We only need standalone point features that represent stations
+        if geom_type == "Point" and name:
+            #Safety feature: Skip structural markers like depots or ramps
+            if "Depot" in name or "Ramp" in name or "*" in name:
+                continue
+
+            raw_coords = geometry.get("coordinates", [])
+
+            #Extract the long and lat, ignoring the 3rd index of altitude
+            if len(raw_coords) >= 2:
+                clean_coords = [raw_coords[0], raw_coords[1]]
+                station_lookup[name] = clean_coords
+    return station_lookup
+
+
 if __name__ == "__main__":
     #Test our parser standalone
     raw_data = load_raw_geojson()
@@ -41,10 +70,25 @@ if __name__ == "__main__":
     purple_tracks = extract_line_coordinates(raw_data, "Mysore Road - Baiyappanahalli")
 
     print("---Parser Test Suite---")
+
+    #1. Test Track Extraction
+    purple_tracks = extract_line_coordinates(raw_data, "Mysore Road - Baiyappanahalli")
     if purple_tracks:
-        print(f"Successfully extracted Purple Line path")
-        print(f"Total Track vector nodes found: {len(purple_tracks)}")
-        print(f"First Track Coordinates: {purple_tracks[0]}")
-        print(f"Last Track Coordinates: {purple_tracks[-1]}")
+        print(f"1. Track Extraction: {len(purple_tracks)} nodes found")
     else:
-        print("Could not find matching LineString in dataset")
+        print("1. Track Extraction Failed")
+
+
+    #2. Test Station Directory Harvesting
+    stations = extract_stations(raw_data)
+    print(f"2. Station Harvesting: {len(stations)} total stations parsed")
+
+    #Checking a few specific stations to verify the dictonary mapping keys
+    test_keys = ["Majestic", "Indiranagar", "Whitefield", "MG Road"]
+    print("3. Sample Station Coordinate Verification: ")
+    for key in test_keys:
+        if key in stations:
+            print(f"   - {key} -> {stations[key]}")
+        else:
+            print(f"   - {key} -> NOT FOUND")
+
