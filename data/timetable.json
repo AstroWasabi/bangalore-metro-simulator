@@ -1,0 +1,34 @@
+[
+  {
+    "trip_id": "PURPLE_WEST_01",
+    "route": "Purple Line",
+    "direction": "Westbound",
+    "stops": [
+      {
+        "station_name": "Baiyappanahalli",
+        "arrival": "16:00:00",
+        "departure": "16:00:45"
+      },
+      {
+        "station_name": "Swami Vivekananda Road",
+        "arrival": "16:03:00",
+        "departure": "16:03:30"
+      },
+      {
+        "station_name": "Indiranagar",
+        "arrival": "16:06:15",
+        "departure": "16:06:45"
+      },
+      {
+        "station_name": "Halasuru",
+        "arrival": "16:09:00",
+        "departure": "16:09:30"
+      },
+      {
+        "station_name": "Nayandahalli",
+        "arrival": "16:35:00",
+        "departure": "16:35:00"
+      }
+    ]
+  }
+]
