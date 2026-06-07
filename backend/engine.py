@@ -100,6 +100,26 @@ def calculate_curved_position(coordinates, progress_fraction):
     # Fallback default safety case
     return coordinates[-1]
 
+def time_to_seconds(time_string):
+    """
+    Converts an 'HH:MM:SS' time string to an integer representing
+    the total number of seconds elapsed since midnight
+    """
+    #1. Split the string into 3 distinct components
+    hours_str, miniutes_str, seconds_str = time_string.split(":")
+
+    #2. Cast the strings into integers
+    hours = int(hours_str)
+    minutes = int(miniutes_str)
+    seconds = int(seconds_str)
+
+    #3. Compute total seconds
+    total_seconds = (hours * 3600) + (minutes * 60) + seconds
+
+    return total_seconds
+
+
+
 
 
 if __name__ == "__main__":
